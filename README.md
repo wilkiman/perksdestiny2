@@ -1,0 +1,1 @@
+A aplicação auxiliará os jogadores que têm dificuldade para entender os atributos e vantagens das armas e armaduras em Destiny, facilitando a compreensão do sistema para favorecer sua evolução no jogo.
