@@ -91,8 +91,8 @@
   </div>
 
   <script>
-    // Substitua 'SUA_CHAVE_DE_API_AQUI' pela sua API Key obtida em https://www.bungie.net/en/Application
-    const API_KEY = "a5ad4bae796481a8c6e222c56b584a4"; 
+    // Cole aqui a sua API Key da Bungie
+    const API_KEY = "ba5ad4bae796481a8c6e222c56b584a4"; 
 
     async function buscarItem() {
       const query = document.getElementById("searchInput").value.trim();
@@ -103,13 +103,24 @@
       resultsContainer.innerHTML = `<div class="status-msg">Carregando dados da Bungie...</div>`;
 
       try {
+        // Endpoint oficial atualizado da Bungie para busca de entidades
         const response = await fetch(`https://www.bungie.net/Platform/Destiny2/Armory/Search/DestinyInventoryItemDefinition/${encodeURIComponent(query)}/?lc=pt-br`, {
-          headers: { "X-API-Key": API_KEY }
+          headers: { 
+            "X-API-Key": API_KEY 
+          }
         });
 
-        if (!response.ok) throw new Error(`Erro na API: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`Status ${response.status}`);
+        }
 
         const data = await response.json();
+        
+        // Verifica o código de resposta da Bungie (1000 = Success / Ok)
+        if (data.ErrorCode !== 1) {
+          throw new Error(data.Message || "Erro na resposta da API");
+        }
+
         const results = data.Response?.results?.results || [];
 
         if (results.length === 0) {
@@ -141,8 +152,8 @@
         });
 
       } catch (error) {
-        console.error(error);
-        resultsContainer.innerHTML = `<div class="status-msg" style="color: #ef4444;">Erro ao buscar dados. Verifique a chave de API e tente novamente.</div>`;
+        console.error("Erro no Fetch:", error);
+        resultsContainer.innerHTML = `<div class="status-msg" style="color: #ef4444;">Erro ao buscar dados. Verifique sua chave de API ou tente novamente.</div>`;
       }
     }
 
@@ -167,7 +178,6 @@
 
         let perksHtml = "";
         
-        // Verifica se há perks/intrínsecos no item
         if (item.sockets && item.sockets.socketEntries) {
           perksHtml = `<div class="perks-section"><div class="perks-title">Sockets / Perks Disponíveis:</div>`;
           
@@ -226,5 +236,4 @@
     }
   </script>
 </body>
-</html>
 </html>
