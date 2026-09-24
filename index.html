@@ -73,7 +73,7 @@
 
   <header>
     <h1>Destiny 2 - Buscador de Perks & God Rolls</h1>
-    <p class="subtitle">Pesquisa direta de armas e recomendações de God Roll</p>
+    <p class="subtitle">Pesquisa direta de armas e recomendações de God Roll em PT-BR</p>
   </header>
 
   <div class="search-container">
@@ -92,12 +92,12 @@
   </div>
 
   <script>
-    // Chave de API da Bungie
+    // Cole sua API Key da Bungie aqui
     const API_KEY = "f0edd8cd8a9847e69d7644a080d40c18"; 
 
-    // Carrega a base global de Wishlists/God Rolls do DIM (Voltron) ao abrir a página
     let wishlistMap = {};
 
+    // Carrega a Wishlist do DIM (Voltron)
     async function carregarWishlist() {
       try {
         const res = await fetch("https://raw.githubusercontent.com/DestinyItemManager/DIM/master/src/app/wishlist/v2/voltron.txt");
@@ -108,17 +108,16 @@
           if (line.startsWith("dimwishlist:item=")) {
             const parts = line.replace("dimwishlist:item=", "").split("&perks=");
             const itemHash = parts[0];
-            const perks = parts[1] ? parts[1].split("#notes:")[0] : "";
-            const note = line.includes("#notes:") ? line.split("#notes:")[1] : "Recomendado pela comunidade";
+            const note = line.includes("#notes:") ? line.split("#notes:")[1] : "Recomendado pela comunidade DIM";
 
             if (!wishlistMap[itemHash]) {
               wishlistMap[itemHash] = [];
             }
-            wishlistMap[itemHash].push({ perks, note });
+            wishlistMap[itemHash].push(note);
           }
         });
       } catch (err) {
-        console.log("Erro ao carregar wishlist do DIM", err);
+        console.log("Erro ao carregar wishlist", err);
       }
     }
 
@@ -133,9 +132,12 @@
       resultsContainer.innerHTML = `<div class="status-msg">Pesquisando na Bungie...</div>`;
 
       try {
-        // Endpoint oficial de busca da Bungie
-        const response = await fetch(`https://www.bungie.net/Platform/Destiny2/Armory/Search/DestinyInventoryItemDefinition/${encodeURIComponent(query)}/?lc=pt-br`, {
-          headers: { 
+        // Uso de endpoint via proxy CORS para evitar bloqueio do navegador no GitHub Pages
+        const bungieUrl = `https://www.bungie.net/Platform/Destiny2/Armory/Search/DestinyInventoryItemDefinition/${encodeURIComponent(query)}/?lc=pt-br`;
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(bungieUrl)}`;
+
+        const response = await fetch(proxyUrl, {
+          headers: {
             "X-API-Key": API_KEY
           }
         });
@@ -175,7 +177,7 @@
 
       } catch (error) {
         console.error(error);
-        resultsContainer.innerHTML = `<div class="status-msg" style="color: #ef4444;">Erro ao buscar. Certifique-se de preencher a API Key correta ou tente novamente.</div>`;
+        resultsContainer.innerHTML = `<div class="status-msg" style="color: #ef4444;">Erro ao realizar a busca. Tente novamente em instantes.</div>`;
       }
     }
 
@@ -190,22 +192,21 @@
       const hash = item.hash;
       const urlLightGG = `https://www.lightgg.com/db/pt-br/items/${hash}`;
 
-      // Busca na wishlist do DIM carregada
       const godRolls = wishlistMap[hash] || [];
 
       let godRollHtml = "";
       if (godRolls.length > 0) {
         godRollHtml = `
           <div class="godroll-box">
-            <div class="godroll-title">✨ Recomendação de God Roll (Comunidade DIM):</div>
-            <p style="font-size: 0.85rem; color: #d1fae5;">${godRolls[0].note}</p>
+            <div class="godroll-title">✨ Recomendação de God Roll (DIM):</div>
+            <p style="font-size: 0.85rem; color: #d1fae5;">${godRolls[0]}</p>
           </div>
         `;
       } else {
         godRollHtml = `
           <div class="godroll-box" style="background: #1e293b; border-color: #334155;">
             <div class="godroll-title" style="color: var(--text-muted);">ℹ️ God Roll:</div>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">Consulte as combinações detalhadas e avaliações no Light.gg.</p>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Consulte os perks completos diretamente no Light.gg abaixo.</p>
           </div>
         `;
       }
@@ -222,7 +223,7 @@
         
         ${godRollHtml}
 
-        <a href="${urlLightGG}" target="_blank" class="btn-lightgg">Ver God Rolls Completos no Light.gg ↗</a>
+        <a href="${urlLightGG}" target="_blank" class="btn-lightgg">Ver God Rolls no Light.gg ↗</a>
       `;
     }
 
